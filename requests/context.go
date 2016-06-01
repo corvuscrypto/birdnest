@@ -1,6 +1,4 @@
-package requests
-
-import "net/http"
+package birdnest
 
 //context is a map that has special methods added for convenience
 type context map[string]interface{}
@@ -30,11 +28,4 @@ func (c context) Get(key string, defaultValue ...interface{}) interface{} {
 		return nil
 	}
 	return defaultValue[0]
-}
-
-//Request is a wrapper containing the base request information along with context
-type Request struct {
-	*http.Request
-	Response http.ResponseWriter
-	Context  context
 }
