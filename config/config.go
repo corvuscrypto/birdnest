@@ -1,8 +1,5 @@
 package config
 
-//Config is the config... no tricks here.
-var Config *config
-
 //Can't touch this :>c
 type config struct {
 	data map[string]interface{}
