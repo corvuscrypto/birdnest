@@ -10,7 +10,7 @@ import (
 type Request struct {
 	*http.Request
 	Response  http.ResponseWriter
-	Context   context
+	Ctx       Context
 	Session   sessions.Session
 	CSRFToken string
 }
