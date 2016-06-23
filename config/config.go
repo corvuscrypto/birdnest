@@ -8,6 +8,13 @@ type config struct {
 	pipeline  []func(*requests.Request)
 }
 
+func NewConfig() *config {
+	Config = new(config)
+	Config.variables = make(map[string]interface{})
+	Config.pipeline = make([]func(*requests.Request), 0)
+	return Config
+}
+
 //Get returns the key value (or nil) as an interface{} type
 func (c *config) Get(key string) interface{} {
 	return c.variables[key]
