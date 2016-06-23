@@ -5,10 +5,10 @@ type Context map[string]interface{}
 
 //Set sets a key-value association on the map. If true is passed as the third argument, this method will fail to set
 //the value if there is already a value set for the given key
-func (c Context) Set(key string, value interface{}, f ...bool) {
+func (c Context) Set(key string, value interface{}, noOverwrite ...bool) {
 
 	//if third arg is true check for set value
-	if len(f) > 0 && f[0] {
+	if len(noOverwrite) > 0 && noOverwrite[0] {
 		if _, ok := c[key]; ok {
 			//return to prevent overwrite
 			return
