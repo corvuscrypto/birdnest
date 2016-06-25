@@ -16,7 +16,9 @@ func GenerateCSRFToken() string {
 	return base64.StdEncoding.EncodeToString(token)
 }
 
-func addCSRFTokenToResponse(request *requests.Request) {
+//AddCSRFTokenToResponse generates a CSRF token and adds it into a response's cookie headers using the
+//default name of CSRFToken. This function returns the value of the token for convenience.
+func AddCSRFTokenToResponse(request *requests.Request) string {
 	csrfToken := GenerateCSRFToken()
 
 	request.CSRFToken = csrfToken
@@ -25,4 +27,5 @@ func addCSRFTokenToResponse(request *requests.Request) {
 	csrfCookie.Name = "CSRFToken"
 	csrfCookie.Value = csrfToken //todo
 	http.SetCookie(request.Response, csrfCookie)
+	return csrfToken
 }
