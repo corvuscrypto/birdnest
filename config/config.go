@@ -27,6 +27,9 @@ func (c *config) GetBool(key string) bool {
 
 //GetInt returns the key value as a int
 func (c *config) GetInt(key string) int {
+	if c.variables[key] == nil {
+		return 0
+	}
 	return c.variables[key].(int)
 }
 

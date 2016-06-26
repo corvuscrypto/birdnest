@@ -7,12 +7,14 @@ import (
 	"github.com/corvuscrypto/birdnest/config"
 )
 
-//Serve initializes a server to listen for http requests. It automatically handles transformation of an http.Request to
-//the birdnest Request format.
-func Serve(router *Router) {
+//NewServer initializes a server to listen for http requests and returns it for user-initiated listening.
+func NewServer(router *Router) *http.Server {
 	if router == nil {
 		router = NewRouter(nil)
 	}
 	serverPort := config.Config.GetInt("serverPort")
-	http.ListenAndServe(":"+strconv.Itoa(serverPort), router)
+	server := new(http.Server)
+	server.Handler = router
+	server.Addr = ":" + strconv.Itoa(serverPort)
+	return server
 }
