@@ -16,34 +16,48 @@ func NewConfig() *config {
 }
 
 //Get returns the key value (or nil) as an interface{} type
-func (c *config) Get(key string) interface{} {
-	return c.variables[key]
+func (c *config) Get(key string, fallback ...interface{}) interface{} {
+	v, ok := c.variables[key]
+	if !ok && fallback != nil {
+		return fallback[0]
+	}
+	return v
 }
 
 //GetBool returns the key value as a bool
-func (c *config) GetBool(key string) bool {
-	return c.variables[key].(bool)
+func (c *config) GetBool(key string, fallback ...bool) bool {
+	v, ok := c.variables[key].(bool)
+	if !ok && fallback != nil {
+		return fallback[0]
+	}
+	return v
 }
 
 //GetInt returns the key value as a int
-func (c *config) GetInt(key string) int {
-	if c.variables[key] == nil {
-		return 0
+func (c *config) GetInt(key string, fallback ...int) int {
+	v, ok := c.variables[key].(int)
+	if !ok && fallback != nil {
+		return fallback[0]
 	}
-	return c.variables[key].(int)
+	return v
 }
 
 //GetFloat returns the key value as a float64
-func (c *config) GetFloat(key string) float64 {
-	return c.variables[key].(float64)
+func (c *config) GetFloat(key string, fallback ...float64) float64 {
+	v, ok := c.variables[key].(float64)
+	if !ok && fallback != nil {
+		return fallback[0]
+	}
+	return v
 }
 
 //GetString returns the key value as a string
-func (c *config) GetString(key string) string {
-	if c.variables[key] == nil {
-		return ""
+func (c *config) GetString(key string, fallback ...string) string {
+	v, ok := c.variables[key].(string)
+	if !ok && fallback != nil {
+		return fallback[0]
 	}
-	return c.variables[key].(string)
+	return v
 }
 
 //Set sets a value on the config struct
