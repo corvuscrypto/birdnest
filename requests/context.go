@@ -8,7 +8,7 @@ type Context map[string]interface{}
 func (c Context) Set(key string, value interface{}, noOverwrite ...bool) {
 
 	//if third arg is true check for set value
-	if len(noOverwrite) > 0 && noOverwrite[0] {
+	if noOverwrite != nil && noOverwrite[0] {
 		if _, ok := c[key]; ok {
 			//return to prevent overwrite
 			return
@@ -25,8 +25,8 @@ func (c Context) Get(key string, defaultValue ...interface{}) interface{} {
 	if v, ok := c[key]; ok {
 		return v
 	}
-	if len(defaultValue) == 0 {
-		return nil
+	if defaultValue != nil {
+		return defaultValue[0]
 	}
-	return defaultValue[0]
+	return nil
 }
