@@ -14,6 +14,7 @@ type Router struct {
 
 func transformRequest(w http.ResponseWriter, r *http.Request, p httprouter.Params) *requests.Request {
 	req := new(requests.Request)
+	req.Request = r
 	req.Response = w
 	req.Params = p
 	return req
