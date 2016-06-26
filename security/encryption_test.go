@@ -98,3 +98,44 @@ func TestEncryption(T *testing.T) {
 	}
 
 }
+
+type FakeBlock struct{}
+
+func (f *FakeBlock) BlockSize() int {
+	return 10
+}
+func (f *FakeBlock) Encrypt(d, s []byte) {}
+func (f *FakeBlock) Decrypt(d, s []byte) {}
+
+func TestPanics(T *testing.T) {
+
+	//Test the panic of the default encrypter with a bad key
+	func() {
+		defer func() {
+			if catch := recover(); catch == nil {
+				T.Errorf("Did not panic as expected!")
+			}
+		}()
+		setDefaultEncrypter([]byte("asd"))
+	}()
+
+	//Test the panic of setting an encrypter
+	func() {
+		defer func() {
+			if catch := recover(); catch == nil {
+				T.Errorf("Did not panic as expected!")
+			}
+		}()
+		setEncryptionBlock(new(FakeBlock))
+	}()
+
+	//Test the panic of encrypting something other than a byte slice or encrypter
+	func() {
+		defer func() {
+			if catch := recover(); catch == nil {
+				T.Errorf("Did not panic as expected!")
+			}
+		}()
+		EncryptData("asd")
+	}()
+}

@@ -37,6 +37,9 @@ func (c *config) GetFloat(key string) float64 {
 
 //GetString returns the key value as a string
 func (c *config) GetString(key string) string {
+	if c.variables[key] == nil {
+		return ""
+	}
 	return c.variables[key].(string)
 }
 

@@ -21,20 +21,16 @@ var nonceSeed []byte
 var nonceCounter uint32
 
 func init() {
-	if config.Config.Get("SecretKey") == nil {
-		secretKey := make([]byte, 32)
-		rand.Read(secretKey)
-		config.Config.Set("SecretKey", string(secretKey))
+	var secretKey string
+	if secretKey = config.Config.GetString("SecretKey"); secretKey == "" {
+		keyBuffer := make([]byte, 32)
+		rand.Read(keyBuffer)
+		secretKey = string(keyBuffer)
+		config.Config.Set("SecretKey", secretKey)
 	}
 
 	//setup the default cipher
-	block, err := aes.NewCipher([]byte(config.Config.GetString("SecretKey")))
-	if err != nil {
-		panic(err)
-	}
-
-	setEncryptionBlock(block)
-
+	setDefaultEncrypter([]byte(secretKey))
 	//generate a random nonce seed
 	nonceSeed = make([]byte, 8)
 	rand.Read(nonceSeed)
@@ -47,6 +43,14 @@ func generateNonce() []byte {
 	buf := make([]byte, 4)
 	binary.BigEndian.PutUint32(buf, atomic.AddUint32(&nonceCounter, 1))
 	return append(nonceSeed, buf...)
+}
+
+func setDefaultEncrypter(secretKey []byte) {
+	block, err := aes.NewCipher(secretKey)
+	if err != nil {
+		panic(err)
+	}
+	setEncryptionBlock(block)
 }
 
 //EncryptData takes a value and encrypts it using a GCM cipher block
