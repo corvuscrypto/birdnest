@@ -1,8 +1,0 @@
-package config
-
-import "github.com/corvuscrypto/birdnest/requests"
-
-//RegisterMiddleware registers a request middleware handler. These middle-tier handlers are executed in sequence.
-func (c *config) RegisterMiddleware(f func(*requests.Request)) {
-	c.pipeline = append(Config.pipeline, f)
-}

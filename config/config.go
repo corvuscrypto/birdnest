@@ -1,18 +1,8 @@
 package config
 
-import "github.com/corvuscrypto/birdnest/requests"
-
 //Can't touch this :>c
 type config struct {
 	variables map[string]interface{}
-	pipeline  []func(*requests.Request)
-}
-
-func NewConfig() *config {
-	Config = new(config)
-	Config.variables = make(map[string]interface{})
-	Config.pipeline = make([]func(*requests.Request), 0)
-	return Config
 }
 
 //Get returns the key value (or nil) as an interface{} type
@@ -63,4 +53,12 @@ func (c *config) GetString(key string, fallback ...string) string {
 //Set sets a value on the config struct
 func (c *config) Set(key string, value interface{}) {
 	c.variables[key] = value
+}
+
+//Config is the config... no tricks here.
+var Config *config
+
+func init() {
+	Config = new(config)
+	Config.variables = make(map[string]interface{})
 }
