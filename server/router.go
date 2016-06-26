@@ -7,6 +7,10 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+//RequestHandler type is the function signature required in
+//order to register a new middleware request handler
+type RequestHandler func(*requests.Request)
+
 //Router is an adapter for the httprouter.Router
 type Router struct {
 	router *httprouter.Router
