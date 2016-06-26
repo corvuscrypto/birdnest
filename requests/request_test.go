@@ -7,13 +7,14 @@ import (
 )
 
 func TestRequest(T *testing.T) {
+	var token string
 	//test adding a token to a response
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//make a new Request out of it
 		testReq := new(Request)
 		testReq.Request = r
 		testReq.Response = w
-		token = AddCSRFTokenToResponse(testReq)
+		token = testReq.AddCSRFToken()
 		//check to ensure that the encoded length is the expected 44 characters long
 		if len(token) != 44 {
 			T.Errorf("Unexpected CSRF token length!")
