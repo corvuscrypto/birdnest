@@ -58,7 +58,7 @@ const (
 
 //Logger is an interface that implements Log(...) which requires a level and content.
 type Logger interface {
-	Log(Level, interface{})
+	Log(Level, ...interface{})
 }
 
 //DefaultLogger is the suggested default logger
@@ -81,14 +81,14 @@ func NewDefaultLogger(out io.Writer) *DefaultLogger {
 }
 
 //Log satisfies the birdnest Logger interface
-func (logger *DefaultLogger) Log(lvl Level, content interface{}) {
+func (logger *DefaultLogger) Log(lvl Level, content ...interface{}) {
 	logger.Lock()
 	defer logger.Unlock()
 	if uint8(lvl)&logger.AllowedLevels == 0 {
 		return
 	}
 	logger.EventCounts[lvl]++
-	logger.output.Write([]byte(fmt.Sprintf("<%s> [%s] %s - %s\n", logger.Prefix, lvl, time.Now().Format(time.RFC3339), content)))
+	logger.output.Write([]byte(fmt.Sprintf("<%s> [%s] %s - %s\n", logger.Prefix, lvl, time.Now().Format(time.RFC3339), fmt.Sprint(content...))))
 }
 
 //GetLogger retrieves a logger. If there is no tag given, then the global logger retrieved
@@ -110,6 +110,29 @@ func RegisterLogger(logger Logger, tag ...string) {
 	}
 	loggers[tag[0]] = logger
 }
+
+//CONVENIENCE METHODS
+
+//Alert is a convenience method for logging using the ALERT level with the global logger
+func Alert(content ...interface{}) { globalLogger.Log(ALERT, content...) }
+
+//Critical is a convenience method for logging using the CRITICAL level with the global logger
+func Critical(content ...interface{}) { globalLogger.Log(CRITICAL, content...) }
+
+//Error is a convenience method for logging using the ERROR level with the global logger
+func Error(content ...interface{}) { globalLogger.Log(ERROR, content...) }
+
+//Warning is a convenience method for logging using the WARNING level with the global logger
+func Warning(content ...interface{}) { globalLogger.Log(WARNING, content...) }
+
+//Notice is a convenience method for logging using the NOTICE level with the global logger
+func Notice(content ...interface{}) { globalLogger.Log(NOTICE, content...) }
+
+//Info is a convenience method for logging using the INFO level with the global logger
+func Info(content ...interface{}) { globalLogger.Log(INFO, content...) }
+
+//Debug is a convenience method for logging using the DEBUG level with the global logger
+func Debug(content ...interface{}) { globalLogger.Log(DEBUG, content...) }
 
 func init() {
 	//initialize a base logger

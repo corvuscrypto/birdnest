@@ -11,11 +11,10 @@ import (
 
 //ReadConfig reads a file and parses the values into the Config struct
 func ReadConfig(filepath string) {
-	logger := logging.GetLogger()
 	//open the file
 	f, err := os.Open(filepath)
 	if err != nil {
-		logger.Log(logging.ERROR, err)
+		logging.Error("config.ReadConfig: ", err)
 		os.Exit(1)
 	}
 	data, _ := ioutil.ReadAll(f)
@@ -23,7 +22,7 @@ func ReadConfig(filepath string) {
 
 	err = json.Unmarshal(data, &values)
 	if err != nil {
-		logger.Log(logging.ERROR, err)
+		logging.Error("config.ReadConfig: ", err)
 		os.Exit(1)
 	}
 
