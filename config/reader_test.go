@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"testing"
 )
 
@@ -50,7 +49,7 @@ func TestReadConfig(T *testing.T) {
 }
 
 //Thank Andrew Garrand :)
-func TestReaderExits(T *testing.T) {
+func TestReaderErrors(T *testing.T) {
 	testData := map[string]interface{}{
 		"testInt":    21,
 		"testString": "Hello",
@@ -65,34 +64,20 @@ func TestReaderExits(T *testing.T) {
 	//transform testData into byte slice
 	bitties, _ := json.Marshal(testData)
 
-	if os.Getenv("BadData") == "1" {
-		//create a temp file and write the data to it json encoded
-		f, _ := ioutil.TempFile("", "configTest")
-		filename := f.Name()
-		defer os.Remove(filename)
-		//write in bad data
-		f.Write(bitties[1:])
-		f.Close()
-		ReadConfig(filename)
-		return
+	//create a temp file and write the data to it json encoded
+	f, _ := ioutil.TempFile("", "configTest")
+	filename := f.Name()
+	defer os.Remove(filename)
+	//write in bad data
+	f.Write(bitties[1:])
+	f.Close()
+
+	if ReadConfig(filename) == nil {
+		T.Errorf("Unexpected success encountered")
 	}
 
-	if os.Getenv("BadFile") == "1" {
-		ReadConfig("1234567890asdfghjkl")
-		return
-	}
-
-	badData := exec.Command(os.Args[0], "-test.run=TestReaderExits")
-	badData.Env = append(os.Environ(), "BadData=1")
-	err := badData.Run()
-	if e, ok := err.(*exec.ExitError); !ok || e.Success() {
-		T.Errorf("Process did not exit")
-	}
-	badFile := exec.Command(os.Args[0], "-test.run=TestReaderExits")
-	badFile.Env = append(os.Environ(), "BadFile=1")
-	err = badFile.Run()
-	if e, ok := err.(*exec.ExitError); !ok || e.Success() {
-		T.Errorf("Process did not exit")
+	if ReadConfig("1234567890asdfghjkl") == nil {
+		T.Errorf("Unexpected success encountered")
 	}
 
 }
