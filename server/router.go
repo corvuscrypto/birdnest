@@ -21,6 +21,7 @@ func transformRequest(w http.ResponseWriter, r *http.Request, p httprouter.Param
 	req.Request = r
 	req.Response = w
 	req.Params = p
+	req.Ctx = make(requests.Context)
 	return req
 }
 

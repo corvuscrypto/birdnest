@@ -23,7 +23,7 @@ type Request struct {
 func (request Request) AddCSRFToken() string {
 	csrfToken := security.GenerateCSRFToken()
 
-	request.CSRFToken = csrfToken
+	request.Ctx.Set("CSRFToken", csrfToken)
 
 	csrfCookie := new(http.Cookie)
 	csrfCookie.Name = "CSRFToken"

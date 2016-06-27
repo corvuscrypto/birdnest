@@ -60,6 +60,7 @@ func RegisterRenderer(name string, renderer Renderer) {
 }
 
 func init() {
+	availableRenderers = make(map[string]Renderer)
 	//add the default renderers to the availableRenderers map
 	availableRenderers[JSONRenderer] = new(jsonRenderer)
 }
