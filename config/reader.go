@@ -5,25 +5,21 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
-
-	"github.com/corvuscrypto/birdnest/logging"
 )
 
 //ReadConfig reads a file and parses the values into the Config struct
-func ReadConfig(filepath string) {
+func ReadConfig(filepath string) error {
 	//open the file
 	f, err := os.Open(filepath)
 	if err != nil {
-		logging.Error("config.ReadConfig: ", err)
-		os.Exit(1)
+		return err
 	}
 	data, _ := ioutil.ReadAll(f)
 	values := make(map[string]interface{})
 
 	err = json.Unmarshal(data, &values)
 	if err != nil {
-		logging.Error("config.ReadConfig: ", err)
-		os.Exit(1)
+		return err
 	}
 
 	for k, v := range values {
@@ -40,4 +36,5 @@ func ReadConfig(filepath string) {
 		}
 		Config.Set(k, v)
 	}
+	return nil
 }
