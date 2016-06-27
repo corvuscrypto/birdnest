@@ -22,12 +22,18 @@ type SQLSessionProvider struct {
 }
 
 //NewSession creates a session and inserts it into the database table specified by the provider.
-func (p *SQLSessionProvider) NewSession(owner interface{}) *Session {
+func (p *SQLSessionProvider) NewSession(owner interface{}) (*Session, error) {
 	csrfToken := security.GenerateCSRFToken()
-	session := NewSession(owner)
+	session, err := GenerateSessionToken(owner)
+	if err != nil {
+		return nil, err
+	}
 	//insert token
 	insertStmt := fmt.Sprintf("INSERT into %s (%s, SessionToken, CSRFToken) values (?,?,?)",
 		p.TableName, p.OwnerField)
-	p.db.Exec(insertStmt, owner, session.rawToken, csrfToken)
-	return session
+	_, err = p.db.Exec(insertStmt, owner, session.rawToken, csrfToken)
+	if err != nil {
+		return nil, err
+	}
+	return session, nil
 }

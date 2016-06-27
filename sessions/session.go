@@ -33,17 +33,21 @@ func (s *Session) Deserialize(data []byte) {
 	s.rawToken = data
 }
 
-//NewSession generates a new session
-func NewSession(owner interface{}) *Session {
+//GenerateSessionToken generates a new session
+func GenerateSessionToken(owner interface{}) (*Session, error) {
 	sess := new(Session)
 	sess.Owner = owner
 	sessBytes := make([]byte, 32)
 	rand.Read(sessBytes)
 	base64.StdEncoding.Encode(sessBytes, sessBytes)
 	sess.rawToken = sessBytes
-	sess.encryptedToken = string(security.EncryptData(sess))
+	encToken, err := security.EncryptData(sess)
+	if err != nil {
+		return nil, err
+	}
+	sess.encryptedToken = string(encToken)
 	//set the Expiration
 	sess.Expiration = time.Unix(int64(config.Config.GetInt("SessionExpiration", 0)), 0)
 
-	return sess
+	return sess, nil
 }
