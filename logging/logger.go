@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
+	"time"
 )
 
 var globalLogger Logger
@@ -21,6 +23,27 @@ var loggers map[string]Logger
 
 //Level is the syslog level represented by a uint8 type
 type Level uint8
+
+//no need to generate, these will stay constant
+func (l Level) String() string {
+	switch l {
+	case ALERT:
+		return "ALERT"
+	case CRITICAL:
+		return "CRITICAL"
+	case ERROR:
+		return "ERROR"
+	case WARNING:
+		return "WARNING"
+	case NOTICE:
+		return "NOTICE"
+	case INFO:
+		return "INFO"
+	case DEBUG:
+		return "DEBUG"
+	}
+	return fmt.Sprintf("Level(%d)", l)
+}
 
 //These are the the logging levels.
 const (
@@ -40,10 +63,11 @@ type Logger interface {
 
 //DefaultLogger is the suggested default logger
 type DefaultLogger struct {
-	output         io.Writer
-	AllowedLevels  uint8
-	EventCounts    map[Level]uint64
-	EventCallbacks map[Level]func(Level, interface{})
+	sync.Mutex
+	output        io.Writer
+	Prefix        string
+	AllowedLevels uint8
+	EventCounts   map[Level]uint64
 }
 
 //NewDefaultLogger initializes and returns a DefaultLogger instance
@@ -52,18 +76,19 @@ func NewDefaultLogger(out io.Writer) *DefaultLogger {
 	logger.output = out
 	logger.AllowedLevels = 0xff
 	logger.EventCounts = make(map[Level]uint64)
-	logger.EventCallbacks = make(map[Level]func(Level, interface{}))
+
 	return logger
 }
 
 //Log satisfies the birdnest Logger interface
 func (logger *DefaultLogger) Log(lvl Level, content interface{}) {
+	logger.Lock()
+	defer logger.Unlock()
 	if uint8(lvl)&logger.AllowedLevels == 0 {
 		return
 	}
 	logger.EventCounts[lvl]++
-	logger.output.Write([]byte(fmt.Sprintf("%s", content)))
-
+	logger.output.Write([]byte(fmt.Sprintf("<%s> [%s] %s - %s\n", logger.Prefix, lvl, time.Now().Format(time.RFC3339), content)))
 }
 
 //GetLogger retrieves a logger. If there is no tag given, then the global logger retrieved
@@ -88,5 +113,7 @@ func RegisterLogger(logger Logger, tag ...string) {
 
 func init() {
 	//initialize a base logger
-	globalLogger = NewDefaultLogger(os.Stdout)
+	logger := NewDefaultLogger(os.Stdout)
+	logger.Prefix = "default"
+	globalLogger = logger
 }
