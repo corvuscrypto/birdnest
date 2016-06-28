@@ -73,6 +73,11 @@ func (r *Router) HEAD(path string, handle RequestHandler) {
 	r.router.Handle("HEAD", path, wrapHandler(handle))
 }
 
+//ServeFiles is wrapper to set a static fileserver route onto the underlying httprouter.Router instance
+func (r *Router) ServeFiles(path string, root http.FileSystem) {
+	r.router.ServeFiles(path, root)
+}
+
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.router.ServeHTTP(w, req)
 }
