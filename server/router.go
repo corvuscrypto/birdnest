@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/corvuscrypto/birdnest/rendering"
 	"github.com/corvuscrypto/birdnest/requests"
 	"github.com/julienschmidt/httprouter"
 )
@@ -25,52 +26,62 @@ func transformRequest(w http.ResponseWriter, r *http.Request, p httprouter.Param
 	return req
 }
 
-func wrapHandler(h RequestHandler) httprouter.Handle {
+func wrapHandler(h RequestHandler, renderer rendering.Renderer) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		req := transformRequest(w, r, p)
 		applyMiddleware(req)
 		h(req)
+		if renderer != nil {
+			renderer.Render(req)
+		}
 	}
 }
 
 //Handle is the adapter for birdnest routing to utilize httprouter's Handle method
-func (r *Router) Handle(method, path string, handle RequestHandler) {
-	r.router.Handle(method, path, wrapHandler(handle))
+func (r *Router) Handle(method, path string, handle RequestHandler, renderer rendering.Renderer) {
+	r.router.Handle(method, path, wrapHandler(handle, renderer))
 }
 
-//OPTIONS is the adapter for the httprouter OPTIONS shortcut
-func (r *Router) OPTIONS(path string, handle RequestHandler) {
-	r.router.Handle("OPTIONS", path, wrapHandler(handle))
+//OPTIONS is the adapter for the httprouter OPTIONS shortcut.
+//If renderer is not nil then the request will be rendered using that rendering agent
+func (r *Router) OPTIONS(path string, handle RequestHandler, renderer rendering.Renderer) {
+	r.router.Handle("OPTIONS", path, wrapHandler(handle, renderer))
 }
 
-//PATCH is the adapter for the httprouter PATCH shortcut
-func (r *Router) PATCH(path string, handle RequestHandler) {
-	r.router.Handle("PATCH", path, wrapHandler(handle))
+//PATCH is the adapter for the httprouter PATCH shortcut.
+//If renderer is not nil then the request will be rendered using that rendering agent
+func (r *Router) PATCH(path string, handle RequestHandler, renderer rendering.Renderer) {
+	r.router.Handle("PATCH", path, wrapHandler(handle, renderer))
 }
 
-//POST is the adapter for the httprouter POST shortcut
-func (r *Router) POST(path string, handle RequestHandler) {
-	r.router.Handle("POST", path, wrapHandler(handle))
+//POST is the adapter for the httprouter POST shortcut.
+//If renderer is not nil then the request will be rendered using that rendering agent
+func (r *Router) POST(path string, handle RequestHandler, renderer rendering.Renderer) {
+	r.router.Handle("POST", path, wrapHandler(handle, renderer))
 }
 
-//PUT is the adapter for the httprouter PUT shortcut
-func (r *Router) PUT(path string, handle RequestHandler) {
-	r.router.Handle("PUT", path, wrapHandler(handle))
+//PUT is the adapter for the httprouter PUT shortcut.
+//If renderer is not nil then the request will be rendered using that rendering agent
+func (r *Router) PUT(path string, handle RequestHandler, renderer rendering.Renderer) {
+	r.router.Handle("PUT", path, wrapHandler(handle, renderer))
 }
 
-//GET is the adapter for the httprouter GET shortcut
-func (r *Router) GET(path string, handle RequestHandler) {
-	r.router.Handle("GET", path, wrapHandler(handle))
+//GET is the adapter for the httprouter GET shortcut.
+//If renderer is not nil then the request will be rendered using that rendering agent
+func (r *Router) GET(path string, handle RequestHandler, renderer rendering.Renderer) {
+	r.router.Handle("GET", path, wrapHandler(handle, renderer))
 }
 
-//DELETE is the adapter for the httprouter DELETE shortcut
-func (r *Router) DELETE(path string, handle RequestHandler) {
-	r.router.Handle("DELETE", path, wrapHandler(handle))
+//DELETE is the adapter for the httprouter DELETE shortcut.
+//If renderer is not nil then the request will be rendered using that rendering agent
+func (r *Router) DELETE(path string, handle RequestHandler, renderer rendering.Renderer) {
+	r.router.Handle("DELETE", path, wrapHandler(handle, renderer))
 }
 
-//HEAD is the adapter for the httprouter HEAD shortcut
-func (r *Router) HEAD(path string, handle RequestHandler) {
-	r.router.Handle("HEAD", path, wrapHandler(handle))
+//HEAD is the adapter for the httprouter HEAD shortcut.
+//If renderer is not nil then the request will be rendered using that rendering agent
+func (r *Router) HEAD(path string, handle RequestHandler, renderer rendering.Renderer) {
+	r.router.Handle("HEAD", path, wrapHandler(handle, renderer))
 }
 
 //ServeFiles is wrapper to set a static fileserver route onto the underlying httprouter.Router instance

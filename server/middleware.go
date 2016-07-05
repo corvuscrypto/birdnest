@@ -2,8 +2,10 @@ package server
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/corvuscrypto/birdnest/config"
+	"github.com/corvuscrypto/birdnest/logging"
 	"github.com/corvuscrypto/birdnest/requests"
 	"github.com/corvuscrypto/birdnest/security"
 )
@@ -19,9 +21,17 @@ func RegisterMiddleware(rh ...RequestHandler) {
 }
 
 func applyMiddleware(r *requests.Request) {
+
+	//if we have timing enabled we initiate the time here
+	if config.Config.GetBool("enableTiming", false) {
+		start := time.Now()
+		defer func() { logging.GetLogger().Log(logging.DEBUG, time.Since(start)) }()
+	}
+
 	for _, f := range pipeline {
 		f(r)
 	}
+
 }
 
 //AddCSRFToken generates a CSRF token and adds it into a response's cookie headers using the
@@ -37,11 +47,16 @@ func AddCSRFToken(request *requests.Request) {
 	http.SetCookie(request.Response, csrfCookie)
 }
 
-func init() {
-	pipeline = make([]RequestHandler, 0)
-
+func mandatoryMiddleware(r *requests.Request) {
+	//for now only check security setting for CSRF inclusion
 	//Set the default behavior to have CSRF protection enabled
 	if config.Config.GetBool("enableCSRFProtection", true) {
-		pipeline = append(pipeline, AddCSRFToken)
+		AddCSRFToken(r)
 	}
+}
+
+func init() {
+	pipeline = make([]RequestHandler, 0)
+	//Add in the security CSRF check by default
+	pipeline = append(pipeline, mandatoryMiddleware)
 }

@@ -25,19 +25,23 @@ var (
 //after data has been handled. You may still call render manually if you choose. Multiple calls to Render should
 //do nothing.
 type Renderer interface {
-	NewView(func(*requests.Request)) func(*requests.Request) error
 	Render(*requests.Request) error
 }
 
-//DefaultRenderer is the default struct which satisfies the Renderer interface and allows manipulation of rendering
+//DefaultRenderer is the default struct which renders a request and allows manipulation of rendering
 //behavior via mutation of the renderFunc struct member. NOTE: because this can be changed at runtime I'm sure there
-//are a few cool tricks to be implemented, but I'd recommend against them. Changing renderer behavior on the fly can
-//make for annoying debugging and also black holes that emit nad-punching unicorns will appear for like... no reason!
+//are a few cool tricks which can be implemented, but I'd recommend against them. Changing renderer behavior on the fly can
+//make for annoying debugging and also black holes that emit nad-punching unicorns will appear for, like... no reason!
+//
+//Unlike many traditional renderers which use a view configuration or REQUIRE manual rendering, birdnest renderers instead
+//implement a NewView method which wraps a request handler and calls the renderers exported Render method
+//after data has been handled. You may still call render manually if you choose. Multiple calls to Render should
+//do nothing.
 type DefaultRenderer struct {
 	renderFunc func(*requests.Request) error
 }
 
-//NewView on the DefaultRenderer type satisfied the Renderer interface and wraps a request handler such that rendering
+//NewView wraps a request handler such that rendering
 //occurs at the final stage of request handling. For the DefaultRenderer, if there is an error during rendering, the
 //response will have a 500 code written to it.
 func (d *DefaultRenderer) NewView(f func(*requests.Request)) func(*requests.Request) {
@@ -54,18 +58,6 @@ func (d *DefaultRenderer) NewView(f func(*requests.Request)) func(*requests.Requ
 //a web response
 func (d *DefaultRenderer) Render(r *requests.Request) error {
 	return d.renderFunc(r)
-}
-
-//this is for private access only
-var availableRenderers map[string]Renderer
-
-//GetRenderer retrieves a renderer that is in the registry. If the renderer cannot be found, an error will be returned
-func GetRenderer(name string) (Renderer, error) {
-	r := availableRenderers[name]
-	if r == nil {
-		return nil, ErrRendererNotFound
-	}
-	return r, nil
 }
 
 //JSONRenderer transforms a request context into a JSON Response. If the renderer fails to process it will
