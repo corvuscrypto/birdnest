@@ -8,7 +8,7 @@ import (
 )
 
 //NewServer initializes a server to listen for http requests and returns it for user-initiated listening.
-func NewServer(router *router) *http.Server {
+func NewServer(router Router) *http.Server {
 	if router == nil {
 		router = NewRouter(nil)
 	}

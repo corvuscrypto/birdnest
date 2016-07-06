@@ -12,7 +12,22 @@ import (
 //order to register a new middleware request handler
 type RequestHandler func(*requests.Request)
 
-//router is an adapter for the httprouter.Router
+//Router is the interface which handles route registration. While you may utilize your own router, it is strongly
+//recommended that you utilize the factory method NewRouter in order to create a router instance. A router must
+//implement a static ServeFiles method and the request-method route registration function members as documented.
+type Router interface {
+	http.Handler
+	Handle(method, path string, handle RequestHandler, renderer rendering.Renderer)
+	OPTIONS(path string, handle RequestHandler, renderer rendering.Renderer)
+	GET(path string, handle RequestHandler, renderer rendering.Renderer)
+	POST(path string, handle RequestHandler, renderer rendering.Renderer)
+	PATCH(path string, handle RequestHandler, renderer rendering.Renderer)
+	DELETE(path string, handle RequestHandler, renderer rendering.Renderer)
+	HEAD(path string, handle RequestHandler, renderer rendering.Renderer)
+	PUT(path string, handle RequestHandler, renderer rendering.Renderer)
+	ServeFiles(path string, root http.FileSystem)
+}
+
 type router struct {
 	router       *httprouter.Router
 	PanicHandler RequestHandler
@@ -103,7 +118,7 @@ func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 //NewRouter returns a Router instance. If an *httprouter.Router instance is passed into NewRouter, the Router uses
 //it, otherwise if it is nil the default is used
-func NewRouter(r *httprouter.Router) *router {
+func NewRouter(r *httprouter.Router) Router {
 	if r == nil {
 		r = httprouter.New()
 	}
