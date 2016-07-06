@@ -15,9 +15,10 @@ type RequestHandler func(*requests.Request)
 //Router is an adapter for the httprouter.Router. DO NOT INSTANTIATE THIS MANUALLY!
 //This struct is exported only for documentation purposes and you must use the factory method provided (NewRouter)
 type Router struct {
-	router       *httprouter.Router
-	PanicHandler RequestHandler
-	NotFHandler  RequestHandler
+	router           *httprouter.Router
+	PanicHandler     func(*requests.Request, interface{})
+	NotFoundHandler  RequestHandler
+	NotFoundRenderer rendering.Renderer
 }
 
 func transformRequest(w http.ResponseWriter, r *http.Request, p httprouter.Params) *requests.Request {
@@ -29,15 +30,16 @@ func transformRequest(w http.ResponseWriter, r *http.Request, p httprouter.Param
 	return req
 }
 
-func (r *Router) panicHandler() {
+func (r *Router) panicHandler(req *requests.Request) {
 	if p := recover(); p != nil {
-
+		r.PanicHandler(req, p)
 	}
 }
 
 func (r *Router) wrapHandler(h RequestHandler, renderer rendering.Renderer) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		req := transformRequest(w, r, p)
+	return func(w http.ResponseWriter, hr *http.Request, p httprouter.Params) {
+		req := transformRequest(w, hr, p)
+		defer r.panicHandler(req)
 		applyMiddleware(req)
 		h(req)
 		if renderer != nil {
@@ -99,7 +101,11 @@ func (r *Router) ServeFiles(path string, root http.FileSystem) {
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	r.router.ServeHTTP(w, req)
+	if h, p, _ := r.router.Lookup(req.Method, req.URL.Path); h == nil {
+		r.wrapHandler(r.NotFoundHandler, r.NotFoundRenderer)(w, req, nil)
+	} else {
+		h(w, req, p)
+	}
 }
 
 //NewRouter returns a Router instance. If an *httprouter.Router instance is passed into NewRouter, the Router uses
