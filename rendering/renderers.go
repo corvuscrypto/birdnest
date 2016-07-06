@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/corvuscrypto/birdnest/logging"
 	"github.com/corvuscrypto/birdnest/requests"
 )
 
@@ -49,7 +50,7 @@ func (d *DefaultRenderer) NewView(f func(*requests.Request)) func(*requests.Requ
 		f(r)
 		err := d.renderFunc(r)
 		if err != nil {
-			r.Response.WriteHeader(500)
+			logging.Debug(err)
 		}
 	}
 }
