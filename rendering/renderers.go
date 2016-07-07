@@ -6,6 +6,8 @@ package rendering
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"text/template"
 
 	"github.com/corvuscrypto/birdnest/requests"
 )
@@ -41,17 +43,32 @@ type DefaultRenderer struct {
 	renderFunc func(*requests.Request) error
 }
 
-//NewView wraps a request handler such that rendering
-//occurs at the final stage of request handling. For the DefaultRenderer, if there is an error during rendering, the
-//response will have a 500 code written to it.
-func (d *DefaultRenderer) NewView(f func(*requests.Request)) func(*requests.Request) {
-	return func(r *requests.Request) {
-		f(r)
-		err := d.renderFunc(r)
+//NewStaticView accepts a filepath (for consistency, absolute path is recommended) to a static file and returns a renderer that can be used
+//with the internal routing system.
+func NewStaticView(file string) *DefaultRenderer {
+	ret := new(DefaultRenderer)
+	ret.renderFunc = func(r *requests.Request) error {
+		data, err := ioutil.ReadFile(file)
 		if err != nil {
-			panic(err)
+			return err
 		}
+		r.Response.Write(data)
+		return nil
 	}
+	return ret
+}
+
+func NewTemplateView(t *template.Template) *DefaultRenderer {
+	ret := new(DefaultRenderer)
+	ret.renderFunc = func(r *requests.Request) error {
+		err := t.Execute(r.Response, r.Ctx)
+		if err != nil {
+			return err
+		}
+		r.Rendered = true
+		return nil
+	}
+	return ret
 }
 
 //Render on the DefaultRenderer type satisfies the Renderer interface and allows direct rendering of
@@ -61,7 +78,7 @@ func (d *DefaultRenderer) Render(r *requests.Request) error {
 }
 
 //JSONRenderer transforms a request context into a JSON Response. If the renderer fails to process it will
-//automatically set the header to an error 500 code.
+//return an error.
 var JSONRenderer = &DefaultRenderer{
 	func(req *requests.Request) error {
 		data, err := json.Marshal(req.Ctx)
@@ -72,6 +89,10 @@ var JSONRenderer = &DefaultRenderer{
 		//ensure that the content header is set
 		req.Response.Header().Set("Content-Type", "application/json")
 		req.Response.Write(data)
+
+		//set the Rendered flag as true
+		req.Rendered = true
+
 		return nil
 	},
 }

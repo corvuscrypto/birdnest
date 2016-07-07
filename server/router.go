@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/corvuscrypto/birdnest/rendering"
@@ -41,9 +42,14 @@ func (r *Router) wrapHandler(h RequestHandler, renderer rendering.Renderer) http
 		req := transformRequest(w, hr, p)
 		defer r.panicHandler(req)
 		applyMiddleware(req)
-		h(req)
-		if renderer != nil {
-			renderer.Render(req)
+		if h != nil {
+			h(req)
+		}
+		if renderer != nil && !req.Rendered {
+			err := renderer.Render(req)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 }
@@ -102,7 +108,7 @@ func (r *Router) ServeFiles(path string, root http.FileSystem) {
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if h, p, _ := r.router.Lookup(req.Method, req.URL.Path); h == nil {
-		r.wrapHandler(r.NotFoundHandler, r.NotFoundRenderer)(w, req, nil)
+		r.wrapHandler(r.NotFoundHandler, nil)(w, req, nil)
 	} else {
 		h(w, req, p)
 	}
@@ -116,5 +122,8 @@ func NewRouter(r *httprouter.Router) *Router {
 	}
 	ret := new(Router)
 	ret.router = r
+	ret.PanicHandler = func(req *requests.Request, v interface{}) {
+		req.Response.Write([]byte(fmt.Sprintf("%s", v)))
+	}
 	return ret
 }

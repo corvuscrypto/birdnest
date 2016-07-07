@@ -15,4 +15,5 @@ type Request struct {
 	Session   *sessions.Session
 	CSRFToken string
 	Params    httprouter.Params
+	Rendered  bool
 }
